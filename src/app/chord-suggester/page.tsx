@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChordSuggestions } from "~/components/chord-suggestions";
+import { GenreMoodDiscover } from "~/components/genre-mood-discover";
 import { NoteGrid } from "~/components/note-grid";
 import { PlaybackControls } from "~/components/playback-controls";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import { Separator } from "~/components/ui/separator";
 import { useChordPlayback } from "~/hooks/use-chord-playback";
 import { harmonize } from "~/lib/music/harmonize";
 import { createEmptyMelody, isMelodyEmpty } from "~/lib/music/melody";
@@ -97,7 +99,9 @@ export default function ChordSuggesterPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Chord Suggester</h1>
+        <h1 className="font-display text-2xl tracking-tight">
+          Chord Suggester
+        </h1>
         <div className="flex gap-2">
           {MEASURE_OPTIONS.map((option) => (
             <Button
@@ -202,6 +206,10 @@ export default function ChordSuggesterPage() {
           </CardContent>
         </Card>
       )}
+
+      <Separator />
+
+      <GenreMoodDiscover />
     </div>
   );
 }
