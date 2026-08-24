@@ -198,7 +198,11 @@ export function PianoRollExplorer() {
                 gridRow: `1 / span ${PIANO_ROLL_ROWS.length}`,
               }}
             >
-              {phase === "analyzing" ? "Analyzing…" : "Choose a genre & mood"}
+              {phase === "analyzing"
+                ? "Analyzing…"
+                : genre
+                  ? "Choose a mood"
+                  : "Choose a genre"}
             </div>
           )}
         </div>
@@ -230,39 +234,42 @@ export function PianoRollExplorer() {
         </div>
       </div>
 
-      {/* Mood picker */}
-      <div className="flex flex-col gap-2">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Mood
-        </p>
-        <div
-          role="tablist"
-          aria-label="Mood"
-          className={cn(
-            "flex flex-wrap gap-2 transition-opacity",
-            !genre && "pointer-events-none opacity-40",
-          )}
+      {/* Mood picker — only appears once a genre is chosen */}
+      {genre && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="flex flex-col gap-2"
         >
-          {DEMO_MOODS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="tab"
-              aria-selected={mood === m}
-              disabled={!genre}
-              onClick={() => setMood(m)}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
-                mood === m
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Mood
+          </p>
+          <div
+            className="flex flex-wrap gap-2"
+            role="tablist"
+            aria-label="Mood"
+          >
+            {DEMO_MOODS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="tab"
+                aria-selected={mood === m}
+                onClick={() => setMood(m)}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  mood === m
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Suggested directions */}
       {phase === "revealed" && options && activeOptionData && genre && (
