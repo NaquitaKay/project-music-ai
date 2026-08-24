@@ -12,6 +12,7 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "@t3-oss/env-nextjs": "^0.13.11",
@@ -22,7 +23,10 @@
     "radix-ui": "^1.6.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^3.6.0",
+    "tonal": "^6.4.3",
+    "tone": "^15.1.22",
     "zod": "^4.4.3"
   },
   "devDependencies": {

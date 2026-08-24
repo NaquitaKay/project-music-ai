@@ -7,6 +7,7 @@ import { cn } from "~/lib/utils";
 const links = [
   { href: "/", label: "Home" },
   { href: "/notes", label: "Notes" },
+  { href: "/chord-suggester", label: "Chord Suggester" },
 ];
 
 export function Navbar() {
