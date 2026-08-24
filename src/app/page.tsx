@@ -52,9 +52,9 @@ export default function Home() {
               Discover what&apos;s next.
             </h1>
             <p className="max-w-md text-lg text-muted-foreground">
-              Understand the progression you&apos;re playing and explore new
-              directions with AI-powered suggestions shaped around the mood you
-              want.
+              Sing, hum, or enter your notes, and discover the chords that fit
+              your melody — even without strong music theory knowledge. Once you
+              know your chords, explore where your music could go next.
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <Button asChild size="lg">
