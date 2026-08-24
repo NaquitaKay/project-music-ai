@@ -3,13 +3,13 @@
 import { motion } from "framer-motion";
 import { ChordChip } from "~/components/marketing/chord-chip";
 import { ProgressionStrip } from "~/components/marketing/progression-strip";
+import { Badge } from "~/components/ui/badge";
+import { MELODY_ANALYSIS, MELODY_NOTES } from "~/lib/music/piano-roll-demo";
 
-const BASE = [
-  { symbol: "Cmaj7", roman: "I" },
-  { symbol: "Am7", roman: "vi" },
-  { symbol: "Fmaj7", roman: "IV" },
-  { symbol: "G7", roman: "V" },
-];
+const MATCHING_CHORDS = MELODY_ANALYSIS.map(({ chord }) => ({
+  symbol: chord.symbol,
+  roman: chord.roman,
+}));
 
 const DIRECTIONS = [
   { mood: "Dreamy", next: "Fmaj7" },
@@ -21,15 +21,33 @@ export function HeroPreview() {
   return (
     <div className="w-full rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        Your progression
+        Your melody
       </p>
-      <div className="mt-4">
-        <ProgressionStrip chords={BASE} />
+      <div className="mt-4 flex items-center gap-1.5">
+        {MELODY_NOTES.map((note, i) => (
+          <Badge
+            // biome-ignore lint/suspicious/noArrayIndexKey: position in the melody is the note's identity here (the same pitch repeats at different steps)
+            key={`${note}-${i}`}
+            variant="outline"
+            className="font-display"
+          >
+            {note.replace(/\d+$/, "")}
+          </Badge>
+        ))}
       </div>
 
       <div className="mt-8 border-t border-border pt-6">
         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          AI suggests
+          Matching chords
+        </p>
+        <div className="mt-4">
+          <ProgressionStrip chords={MATCHING_CHORDS} />
+        </div>
+      </div>
+
+      <div className="mt-8 border-t border-border pt-6">
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Explore progressions to continue
         </p>
         <div className="mt-4 flex flex-col gap-3">
           {DIRECTIONS.map((d, i) => (
