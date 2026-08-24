@@ -24,11 +24,12 @@ export const DEMO_MOODS = [
 export type DemoGenre = (typeof DEMO_GENRES)[number];
 export type DemoMood = (typeof DEMO_MOODS)[number];
 
-type ChordQuality = "major" | "minor";
+export type ChordQuality = "major" | "minor" | "diminished" | "dominant";
 
 type DemoChordKey = "C" | "Am" | "F" | "G" | "Dm" | "Fm" | "Ab" | "Eb";
 
 type DemoChord = {
+  root: string;
   symbol: string;
   roman: string;
   quality: ChordQuality;
@@ -39,6 +40,7 @@ type DemoChord = {
 
 const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
   C: {
+    root: "C",
     symbol: "C",
     roman: "I",
     quality: "major",
@@ -46,6 +48,7 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["C4", "E4", "G4"],
   },
   Am: {
+    root: "A",
     symbol: "Am",
     roman: "vi",
     quality: "minor",
@@ -53,6 +56,7 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["A3", "C4", "E4"],
   },
   F: {
+    root: "F",
     symbol: "F",
     roman: "IV",
     quality: "major",
@@ -60,13 +64,15 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["F3", "A3", "C4"],
   },
   G: {
+    root: "G",
     symbol: "G",
     roman: "V",
-    quality: "major",
+    quality: "dominant",
     notes: ["G", "B", "D"],
     pitches: ["G3", "B3", "D4"],
   },
   Dm: {
+    root: "D",
     symbol: "Dm",
     roman: "ii",
     quality: "minor",
@@ -74,6 +80,7 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["D4", "F4", "A4"],
   },
   Fm: {
+    root: "F",
     symbol: "Fm",
     roman: "iv",
     quality: "minor",
@@ -81,6 +88,7 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["F3", "G#3", "C4"],
   },
   Ab: {
+    root: "Ab",
     symbol: "Ab",
     roman: "bVI",
     quality: "major",
@@ -88,6 +96,7 @@ const CHORD_BANK: Record<DemoChordKey, DemoChord> = {
     pitches: ["G#3", "C4", "D#4"],
   },
   Eb: {
+    root: "Eb",
     symbol: "Eb",
     roman: "bIII",
     quality: "major",
@@ -108,16 +117,31 @@ const GENRE_VOICING_TIER: Record<DemoGenre, "plain" | "seventh" | "extended"> =
     Cinematic: "extended",
   };
 
+/** Builds a chord symbol whose "dress-up" level matches the genre's voicing tier. */
+export function voiceChordSymbol(
+  root: string,
+  quality: ChordQuality,
+  genre: DemoGenre,
+) {
+  // Diminished chords are idiomatically always "dim7" — there's no plain
+  // triad or extended form worth distinguishing here.
+  if (quality === "diminished") return `${root}dim7`;
+
+  const tier = GENRE_VOICING_TIER[genre];
+  if (quality === "dominant") {
+    if (tier === "plain") return root;
+    return tier === "seventh" ? `${root}7` : `${root}9`;
+  }
+  if (tier === "plain") return quality === "major" ? root : `${root}m`;
+  if (tier === "seventh") {
+    return quality === "major" ? `${root}maj7` : `${root}m7`;
+  }
+  return quality === "major" ? `${root}maj9` : `${root}m9`;
+}
+
 export function voicedSymbol(chordKey: DemoChordKey, genre: DemoGenre) {
   const chord = CHORD_BANK[chordKey];
-  const tier = GENRE_VOICING_TIER[genre];
-  if (tier === "plain") return chord.symbol;
-  if (tier === "seventh") {
-    return chord.quality === "major"
-      ? `${chord.symbol}maj7`
-      : `${chord.symbol}7`;
-  }
-  return chord.quality === "major" ? `${chord.symbol}maj9` : `${chord.symbol}9`;
+  return voiceChordSymbol(chord.root, chord.quality, genre);
 }
 
 export function chordOf(chordKey: DemoChordKey) {

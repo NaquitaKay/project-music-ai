@@ -24,8 +24,8 @@ const MELODY_CHORDS = [{ symbol: "C" }, { symbol: "Am" }, { symbol: "F" }];
 
 const DEMO_STEPS = [
   "Your progression",
-  "Understand it",
-  "Choose a direction",
+  "Choose a genre",
+  "Choose a mood",
   "Discover possibilities",
 ];
 
