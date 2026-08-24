@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { BranchingPaths } from "~/components/marketing/branching-paths";
 import { HeroPreview } from "~/components/marketing/hero-preview";
+import { MelodyAnalysisPanel } from "~/components/marketing/melody-analysis-panel";
 import { MoodDirections } from "~/components/marketing/mood-directions";
+import { PianoRollExplorer } from "~/components/marketing/piano-roll-explorer";
 import { ProgressionStrip } from "~/components/marketing/progression-strip";
 import { Reveal } from "~/components/marketing/reveal";
 import { Badge } from "~/components/ui/badge";
@@ -13,6 +15,8 @@ const MELODY_STEPS = [
   "Melody analysis",
   "Matching chords",
 ];
+
+const FLOW_STEPS = ["Your melody", "AI analysis", "Chords that fit"];
 
 const MELODY_NOTES = ["C4", "E4", "G4", "B4"];
 
@@ -64,6 +68,69 @@ export default function Home() {
 
           <Reveal delay={0.15}>
             <HeroPreview />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* See it in action: live melody -> chords -> continuation demo */}
+      <section className="px-6 py-24 md:py-32">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-14">
+          <Reveal className="flex flex-col items-center gap-4 text-center">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              See it in action
+            </p>
+            <h2 className="max-w-xl font-display text-3xl tracking-tight sm:text-4xl">
+              Give it a melody. Get the chords that fit.
+            </h2>
+            <p className="max-w-lg text-muted-foreground">
+              Sing, hum, or enter your notes — Lumos analyzes the melody, finds
+              the chords behind it, and shows you where it could go next.
+            </p>
+          </Reveal>
+
+          <Reveal
+            delay={0.1}
+            className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm font-medium"
+          >
+            {FLOW_STEPS.map((step, i) => (
+              <Fragment key={step}>
+                {i > 0 && (
+                  <span aria-hidden className="text-muted-foreground/40">
+                    →
+                  </span>
+                )}
+                <span
+                  className={
+                    i === FLOW_STEPS.length - 1
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  }
+                >
+                  {step}
+                </span>
+              </Fragment>
+            ))}
+          </Reveal>
+
+          <Reveal delay={0.15} className="w-full">
+            <MelodyAnalysisPanel />
+          </Reveal>
+
+          <Reveal
+            delay={0.1}
+            className="flex flex-col items-center gap-3 text-center"
+          >
+            <span aria-hidden className="text-2xl text-muted-foreground/40">
+              ↓
+            </span>
+            <p className="max-w-lg text-sm text-muted-foreground">
+              Then choose a genre and mood to see how the progression could
+              continue.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.15} className="w-full">
+            <PianoRollExplorer />
           </Reveal>
         </div>
       </section>
