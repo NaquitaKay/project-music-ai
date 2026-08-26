@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { signOut } from "~/app/auth/actions";
 import { Button } from "~/components/ui/button";
 import {
   Sheet,
@@ -40,7 +41,7 @@ function Logo() {
   );
 }
 
-export function Navbar() {
+export function Navbar({ user }: { user: { email: string } | null }) {
   const pathname = usePathname();
   const isMarketing = pathname === "/";
   const links = isMarketing ? MARKETING_LINKS : APP_LINKS;
@@ -69,13 +70,31 @@ export function Navbar() {
           })}
         </div>
 
-        {isMarketing && (
-          <div className="hidden md:block">
-            <Button asChild size="sm">
-              <Link href="/chord-suggester">Try it free</Link>
-            </Button>
-          </div>
-        )}
+        <div className="hidden items-center gap-2 md:flex">
+          {user ? (
+            <>
+              {isMarketing && (
+                <Button asChild size="sm">
+                  <Link href="/chord-suggester">Open the app</Link>
+                </Button>
+              )}
+              <form action={signOut}>
+                <Button type="submit" size="sm" variant="outline">
+                  Sign out
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Button asChild size="sm" variant="ghost">
+                <Link href="/login">Sign in</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link href="/signup">Sign Up Free</Link>
+              </Button>
+            </>
+          )}
+        </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -102,12 +121,34 @@ export function Navbar() {
                 </SheetClose>
               ))}
             </div>
-            {isMarketing && (
-              <SheetClose asChild>
-                <Button asChild className="mt-2">
-                  <Link href="/chord-suggester">Try it free</Link>
-                </Button>
-              </SheetClose>
+            {user ? (
+              <div className="mt-2 flex flex-col gap-2">
+                {isMarketing && (
+                  <SheetClose asChild>
+                    <Button asChild className="w-full">
+                      <Link href="/chord-suggester">Open the app</Link>
+                    </Button>
+                  </SheetClose>
+                )}
+                <form action={signOut}>
+                  <Button type="submit" variant="outline" className="w-full">
+                    Sign out
+                  </Button>
+                </form>
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-col gap-2">
+                <SheetClose asChild>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button asChild className="w-full">
+                    <Link href="/signup">Sign Up Free</Link>
+                  </Button>
+                </SheetClose>
+              </div>
             )}
           </SheetContent>
         </Sheet>
