@@ -9,6 +9,7 @@ import { ProgressionStrip } from "~/components/marketing/progression-strip";
 import { Reveal } from "~/components/marketing/reveal";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { createClient } from "~/lib/supabase/server";
 
 const MELODY_STEPS = [
   "Sing, hum, or enter notes",
@@ -36,7 +37,15 @@ const UNDERSTAND_PROGRESSION = [
   { symbol: "G", roman: "V" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const primaryCtaHref = user ? "/chord-suggester" : "/signup";
+  const primaryCtaLabel = user ? "Open the app" : "Sign Up Free";
+
   return (
     <main>
       {/* Hero */}
@@ -58,7 +67,7 @@ export default function Home() {
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <Button asChild size="lg">
-                <Link href="/chord-suggester">Try it free</Link>
+                <Link href={primaryCtaHref}>{primaryCtaLabel}</Link>
               </Button>
               <Button asChild size="lg" variant="ghost">
                 <Link href="#how-it-works">See how it works</Link>
@@ -344,7 +353,9 @@ export default function Home() {
             Where will your music go next?
           </h2>
           <Button asChild size="lg">
-            <Link href="/chord-suggester">Start exploring</Link>
+            <Link href={primaryCtaHref}>
+              {user ? "Start exploring" : primaryCtaLabel}
+            </Link>
           </Button>
         </Reveal>
       </section>
