@@ -1,12 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
+import { getProfileFlags } from "~/lib/supabase/profile";
 
 const PROTECTED_PATHS = [
   "/notes",
   "/chord-suggester",
+  "/melody-to-chords",
+  "/admin",
+  "/onboarding",
+  "/app",
   "/api/explain-chord",
   "/api/generate-progressions",
+];
+
+// Paths an authenticated-but-not-yet-onboarded user is still allowed to hit
+// without being bounced to /onboarding (the onboarding page itself, and
+// anything auth/API-related that shouldn't ever respond with a redirect).
+const ONBOARDING_EXEMPT_PATHS = [
+  "/onboarding",
+  "/auth",
+  "/login",
+  "/signup",
+  "/api",
 ];
 
 export async function updateSession(request: NextRequest) {
@@ -49,6 +65,25 @@ export async function updateSession(request: NextRequest) {
     url.search = "";
     url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
+  }
+
+  if (user) {
+    const isExempt = ONBOARDING_EXEMPT_PATHS.some((path) =>
+      request.nextUrl.pathname.startsWith(path),
+    );
+    if (!isExempt) {
+      const { onboardingCompletedAt } = await getProfileFlags(
+        supabase,
+        user.id,
+      );
+
+      if (!onboardingCompletedAt) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/onboarding";
+        url.search = "";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

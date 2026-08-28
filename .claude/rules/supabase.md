@@ -39,3 +39,16 @@ All database schema changes must go through Supabase CLI migrations — never mo
 - Never reset or revert a migration that has been deployed to production — always roll forward
 - Never modify an existing migration file after it has been applied — create a new one instead
 - Commit all migration files to version control
+
+## Admin-visibility pattern
+
+To let admins read every row of a table that otherwise restricts access to `id = auth.uid()` (see `profiles`/`progressions`), add an RLS policy per table using the shared `public.is_admin(uuid)` helper (defined in `add_admin_role` migration) rather than a service-role key:
+
+```sql
+create policy "<table>_select_admin" on public.<table>
+  for select
+  to authenticated
+  using (public.is_admin(auth.uid()));
+```
+
+This is additive — Postgres OR's multiple permissive policies for the same command, so existing per-user policies are unaffected. `is_admin()` is `security definer`, which is what lets it read `profiles.is_admin` without recursing into `profiles`' own RLS.
