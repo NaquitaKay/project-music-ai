@@ -28,13 +28,26 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle();
+    isAdmin = profile?.is_admin ?? false;
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}
       >
         <ThemeProvider>
-          <Navbar user={user ? { email: user.email ?? "" } : null} />
+          <Navbar
+            user={user ? { email: user.email ?? "" } : null}
+            isAdmin={isAdmin}
+          />
           {children}
         </ThemeProvider>
       </body>

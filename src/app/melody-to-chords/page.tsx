@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChordSuggestions } from "~/components/chord-suggestions";
-import { GenreMoodDiscover } from "~/components/genre-mood-discover";
+import { MelodyRecorder } from "~/components/melody-recorder";
 import { NoteGrid } from "~/components/note-grid";
 import { PlaybackControls } from "~/components/playback-controls";
 import { SavedProgressions } from "~/components/saved-progressions";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Separator } from "~/components/ui/separator";
 import { useChordPlayback } from "~/hooks/use-chord-playback";
+import { useMelodyRecorder } from "~/hooks/use-melody-recorder";
 import { useProgressions } from "~/hooks/use-progressions";
 import { harmonize } from "~/lib/music/harmonize";
 import { createEmptyMelody, isMelodyEmpty } from "~/lib/music/melody";
@@ -17,10 +17,10 @@ import type { Melody } from "~/lib/music/types";
 import { STEPS_PER_MEASURE } from "~/lib/music/types";
 import type { SavedProgression } from "~/lib/supabase/progressions";
 
-const MEASURE_OPTIONS = [2, 4];
+const MIN_MEASURES = 1;
+const MAX_MEASURES = 8;
 
-export default function ChordSuggesterPage() {
-  const [measures, setMeasures] = useState(2);
+export default function MelodyToChordsPage() {
   const [melody, setMelody] = useState<Melody>(() => createEmptyMelody(2));
   const [selectedDegrees, setSelectedDegrees] = useState<
     Record<number, number>
@@ -32,22 +32,35 @@ export default function ChordSuggesterPage() {
     error: progressionsError,
     save,
     remove,
-  } = useProgressions("chord-suggester");
+  } = useProgressions("melody-to-chords");
 
-  function changeMeasures(next: number) {
-    setMeasures(next);
+  const recorder = useMelodyRecorder();
+
+  // Mirror the recorder's melody onto the grid as it fills in, so notes
+  // appear live while recording; the grid stays editable afterward.
+  useEffect(() => {
+    if (recorder.melody.length > 0) setMelody(recorder.melody);
+  }, [recorder.melody]);
+
+  function addMeasure() {
     setMelody((prev) => {
-      const targetLength = next * STEPS_PER_MEASURE;
-      if (targetLength > prev.length) {
-        return [...prev, ...createEmptyMelody(next).slice(prev.length)];
-      }
-      return prev.slice(0, targetLength);
+      const measures = prev.length / STEPS_PER_MEASURE;
+      if (measures >= MAX_MEASURES) return prev;
+      return [...prev, ...createEmptyMelody(1)];
+    });
+  }
+
+  function removeMeasure() {
+    setMelody((prev) => {
+      const measures = prev.length / STEPS_PER_MEASURE;
+      if (measures <= MIN_MEASURES) return prev;
+      return prev.slice(0, prev.length - STEPS_PER_MEASURE);
     });
     setSelectedDegrees({});
   }
 
   function clearMelody() {
-    setMelody(createEmptyMelody(measures));
+    setMelody((prev) => createEmptyMelody(prev.length / STEPS_PER_MEASURE));
     setSelectedDegrees({});
   }
 
@@ -78,28 +91,45 @@ export default function ChordSuggesterPage() {
 
   function handleLoad(progression: SavedProgression) {
     setMelody(progression.melody);
-    setMeasures(progression.melody.length / STEPS_PER_MEASURE);
     setSelectedDegrees({});
   }
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="font-display text-2xl tracking-tight">
-          Chord Suggester
+          Melody to Chords
         </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Sing or hum into your microphone, or click notes directly on the grid.
+        </p>
+      </div>
+
+      <MelodyRecorder recorder={recorder} />
+
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
+          {melody.length / STEPS_PER_MEASURE} measures
+        </span>
         <div className="flex gap-2">
-          {MEASURE_OPTIONS.map((option) => (
-            <Button
-              key={option}
-              type="button"
-              variant={measures === option ? "default" : "outline"}
-              size="sm"
-              onClick={() => changeMeasures(option)}
-            >
-              {option} measures
-            </Button>
-          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={removeMeasure}
+            disabled={melody.length / STEPS_PER_MEASURE <= MIN_MEASURES}
+          >
+            - Remove measure
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addMeasure}
+            disabled={melody.length / STEPS_PER_MEASURE >= MAX_MEASURES}
+          >
+            + Add measure
+          </Button>
           <Button type="button" variant="ghost" size="sm" onClick={clearMelody}>
             Clear
           </Button>
@@ -150,7 +180,7 @@ export default function ChordSuggesterPage() {
         </>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Click on the grid above to enter a melody and see chord suggestions.
+          Record a melody or click on the grid above to see chord suggestions.
         </p>
       )}
 
@@ -163,10 +193,6 @@ export default function ChordSuggesterPage() {
         onLoad={handleLoad}
         onDelete={remove}
       />
-
-      <Separator />
-
-      <GenreMoodDiscover />
     </div>
   );
 }

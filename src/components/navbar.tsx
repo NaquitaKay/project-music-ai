@@ -14,8 +14,7 @@ import {
 import { cn } from "~/lib/utils";
 
 const APP_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/notes", label: "Notes" },
+  { href: "/melody-to-chords", label: "Melody to Chords" },
   { href: "/chord-suggester", label: "Chord Suggester" },
 ];
 
@@ -41,10 +40,21 @@ function Logo() {
   );
 }
 
-export function Navbar({ user }: { user: { email: string } | null }) {
+type NavbarProps = {
+  user: { email: string } | null;
+  isAdmin?: boolean;
+};
+
+export function Navbar({ user, isAdmin }: NavbarProps) {
   const pathname = usePathname();
   const isMarketing = pathname === "/";
-  const links = isMarketing ? MARKETING_LINKS : APP_LINKS;
+  const homeHref = user ? "/app" : "/";
+  const appLinks = [
+    { href: homeHref, label: "Home" },
+    ...APP_LINKS,
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
+  const links = isMarketing ? MARKETING_LINKS : appLinks;
   const [open, setOpen] = useState(false);
 
   return (
@@ -75,7 +85,7 @@ export function Navbar({ user }: { user: { email: string } | null }) {
             <>
               {isMarketing && (
                 <Button asChild size="sm">
-                  <Link href="/chord-suggester">Open the app</Link>
+                  <Link href="/app">Open the app</Link>
                 </Button>
               )}
               <form action={signOut}>
@@ -126,7 +136,7 @@ export function Navbar({ user }: { user: { email: string } | null }) {
                 {isMarketing && (
                   <SheetClose asChild>
                     <Button asChild className="w-full">
-                      <Link href="/chord-suggester">Open the app</Link>
+                      <Link href="/app">Open the app</Link>
                     </Button>
                   </SheetClose>
                 )}

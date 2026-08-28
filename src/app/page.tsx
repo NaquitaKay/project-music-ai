@@ -43,7 +43,7 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const primaryCtaHref = user ? "/chord-suggester" : "/signup";
+  const primaryCtaHref = user ? "/app" : "/signup";
   const primaryCtaLabel = user ? "Open the app" : "Sign Up Free";
 
   return (
