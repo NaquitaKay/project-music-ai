@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
+import { getProfileFlags } from "~/lib/supabase/profile";
 
 const PROTECTED_PATHS = [
   "/notes",
@@ -71,13 +72,12 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith(path),
     );
     if (!isExempt) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("onboarding_completed_at")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { onboardingCompletedAt } = await getProfileFlags(
+        supabase,
+        user.id,
+      );
 
-      if (profile && !profile.onboarding_completed_at) {
+      if (!onboardingCompletedAt) {
         const url = request.nextUrl.clone();
         url.pathname = "/onboarding";
         url.search = "";

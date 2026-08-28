@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { OnboardingFlow } from "~/components/onboarding/onboarding-flow";
+import { getProfileFlags } from "~/lib/supabase/profile";
 import { createClient } from "~/lib/supabase/server";
 
 export default async function OnboardingPage() {
@@ -9,13 +10,8 @@ export default async function OnboardingPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/onboarding");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed_at")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profile?.onboarding_completed_at) redirect("/app");
+  const { onboardingCompletedAt } = await getProfileFlags(supabase, user.id);
+  if (onboardingCompletedAt) redirect("/app");
 
   return <OnboardingFlow />;
 }

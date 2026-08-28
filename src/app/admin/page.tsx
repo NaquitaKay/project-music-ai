@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getProfileFlags } from "~/lib/supabase/profile";
 import { createClient } from "~/lib/supabase/server";
 
 type ProfileRow = {
@@ -19,12 +20,10 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/admin");
 
-  const { data: ownProfile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!ownProfile?.is_admin) redirect("/");
+  // Re-checked here (not just in the layout's nav-link visibility) - this
+  // is the actual access control, not a UI convenience.
+  const { isAdmin } = await getProfileFlags(supabase, user.id);
+  if (!isAdmin) redirect("/");
 
   const [{ data: profiles }, { data: progressions }] = await Promise.all([
     supabase

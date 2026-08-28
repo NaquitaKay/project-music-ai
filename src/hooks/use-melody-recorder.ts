@@ -114,7 +114,7 @@ export function useMelodyRecorder() {
         );
         setLevel(rms);
 
-        const frequency = autoCorrelate(buffer, audioContext.sampleRate);
+        const frequency = autoCorrelate(buffer, audioContext.sampleRate, rms);
         if (frequency > 0) {
           const note = frequencyToGridNote(frequency);
           if (note) {

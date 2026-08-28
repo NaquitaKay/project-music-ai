@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChordSuggestions } from "~/components/chord-suggestions";
+import { HarmonizationPanel } from "~/components/harmonization-panel";
 import { MelodyRecorder } from "~/components/melody-recorder";
 import { NoteGrid } from "~/components/note-grid";
 import { PlaybackControls } from "~/components/playback-controls";
 import { SavedProgressions } from "~/components/saved-progressions";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { useChordPlayback } from "~/hooks/use-chord-playback";
 import { useMelodyRecorder } from "~/hooks/use-melody-recorder";
 import { useProgressions } from "~/hooks/use-progressions";
 import { harmonize } from "~/lib/music/harmonize";
-import { createEmptyMelody, isMelodyEmpty } from "~/lib/music/melody";
+import {
+  createEmptyMelody,
+  isMelodyEmpty,
+  measureCount,
+} from "~/lib/music/melody";
 import type { Melody } from "~/lib/music/types";
 import { STEPS_PER_MEASURE } from "~/lib/music/types";
 import type { SavedProgression } from "~/lib/supabase/progressions";
@@ -25,7 +28,6 @@ export default function MelodyToChordsPage() {
   const [selectedDegrees, setSelectedDegrees] = useState<
     Record<number, number>
   >({});
-  const [progressionName, setProgressionName] = useState("");
 
   const {
     progressions,
@@ -44,23 +46,21 @@ export default function MelodyToChordsPage() {
 
   function addMeasure() {
     setMelody((prev) => {
-      const measures = prev.length / STEPS_PER_MEASURE;
-      if (measures >= MAX_MEASURES) return prev;
+      if (measureCount(prev) >= MAX_MEASURES) return prev;
       return [...prev, ...createEmptyMelody(1)];
     });
   }
 
   function removeMeasure() {
     setMelody((prev) => {
-      const measures = prev.length / STEPS_PER_MEASURE;
-      if (measures <= MIN_MEASURES) return prev;
+      if (measureCount(prev) <= MIN_MEASURES) return prev;
       return prev.slice(0, prev.length - STEPS_PER_MEASURE);
     });
     setSelectedDegrees({});
   }
 
   function clearMelody() {
-    setMelody((prev) => createEmptyMelody(prev.length / STEPS_PER_MEASURE));
+    setMelody((prev) => createEmptyMelody(measureCount(prev)));
     setSelectedDegrees({});
   }
 
@@ -79,14 +79,9 @@ export default function MelodyToChordsPage() {
     setSelectedDegrees((prev) => ({ ...prev, [measureIndex]: degree }));
   }
 
-  async function handleSave() {
+  async function handleSave(name: string) {
     if (!harmonization) return;
-    await save(
-      progressionName.trim() || "Untitled progression",
-      melody,
-      harmonization,
-    );
-    setProgressionName("");
+    await save(name, melody, harmonization);
   }
 
   function handleLoad(progression: SavedProgression) {
@@ -109,7 +104,7 @@ export default function MelodyToChordsPage() {
 
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
-          {melody.length / STEPS_PER_MEASURE} measures
+          {measureCount(melody)} measures
         </span>
         <div className="flex gap-2">
           <Button
@@ -117,7 +112,7 @@ export default function MelodyToChordsPage() {
             variant="outline"
             size="sm"
             onClick={removeMeasure}
-            disabled={melody.length / STEPS_PER_MEASURE <= MIN_MEASURES}
+            disabled={measureCount(melody) <= MIN_MEASURES}
           >
             - Remove measure
           </Button>
@@ -126,7 +121,7 @@ export default function MelodyToChordsPage() {
             variant="outline"
             size="sm"
             onClick={addMeasure}
-            disabled={melody.length / STEPS_PER_MEASURE >= MAX_MEASURES}
+            disabled={measureCount(melody) >= MAX_MEASURES}
           >
             + Add measure
           </Button>
@@ -151,38 +146,13 @@ export default function MelodyToChordsPage() {
         disabled={!harmonization}
       />
 
-      {harmonization ? (
-        <>
-          <p className="text-sm text-muted-foreground">
-            Detected key:{" "}
-            <span className="font-medium text-foreground">
-              {harmonization.key.tonic} {harmonization.key.mode}
-            </span>{" "}
-            ({Math.round(harmonization.key.confidence * 100)}% confidence)
-          </p>
-
-          <ChordSuggestions
-            harmonization={harmonization}
-            selectedDegrees={selectedDegrees}
-            onSelectDegree={handleSelectDegree}
-          />
-
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Progression name"
-              value={progressionName}
-              onChange={(e) => setProgressionName(e.target.value)}
-            />
-            <Button type="button" onClick={handleSave}>
-              Save
-            </Button>
-          </div>
-        </>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Record a melody or click on the grid above to see chord suggestions.
-        </p>
-      )}
+      <HarmonizationPanel
+        harmonization={harmonization}
+        selectedDegrees={selectedDegrees}
+        onSelectDegree={handleSelectDegree}
+        onSave={handleSave}
+        emptyMessage="Record a melody or click on the grid above to see chord suggestions."
+      />
 
       {progressionsError && (
         <p className="text-sm text-destructive">{progressionsError}</p>

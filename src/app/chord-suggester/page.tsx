@@ -1,13 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChordSuggestions } from "~/components/chord-suggestions";
 import { GenreMoodDiscover } from "~/components/genre-mood-discover";
+import { HarmonizationPanel } from "~/components/harmonization-panel";
 import { NoteGrid } from "~/components/note-grid";
 import { PlaybackControls } from "~/components/playback-controls";
 import { SavedProgressions } from "~/components/saved-progressions";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import { useChordPlayback } from "~/hooks/use-chord-playback";
 import { useProgressions } from "~/hooks/use-progressions";
@@ -25,7 +24,6 @@ export default function ChordSuggesterPage() {
   const [selectedDegrees, setSelectedDegrees] = useState<
     Record<number, number>
   >({});
-  const [progressionName, setProgressionName] = useState("");
 
   const {
     progressions,
@@ -66,14 +64,9 @@ export default function ChordSuggesterPage() {
     setSelectedDegrees((prev) => ({ ...prev, [measureIndex]: degree }));
   }
 
-  async function handleSave() {
+  async function handleSave(name: string) {
     if (!harmonization) return;
-    await save(
-      progressionName.trim() || "Untitled progression",
-      melody,
-      harmonization,
-    );
-    setProgressionName("");
+    await save(name, melody, harmonization);
   }
 
   function handleLoad(progression: SavedProgression) {
@@ -121,38 +114,13 @@ export default function ChordSuggesterPage() {
         disabled={!harmonization}
       />
 
-      {harmonization ? (
-        <>
-          <p className="text-sm text-muted-foreground">
-            Detected key:{" "}
-            <span className="font-medium text-foreground">
-              {harmonization.key.tonic} {harmonization.key.mode}
-            </span>{" "}
-            ({Math.round(harmonization.key.confidence * 100)}% confidence)
-          </p>
-
-          <ChordSuggestions
-            harmonization={harmonization}
-            selectedDegrees={selectedDegrees}
-            onSelectDegree={handleSelectDegree}
-          />
-
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Progression name"
-              value={progressionName}
-              onChange={(e) => setProgressionName(e.target.value)}
-            />
-            <Button type="button" onClick={handleSave}>
-              Save
-            </Button>
-          </div>
-        </>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Click on the grid above to enter a melody and see chord suggestions.
-        </p>
-      )}
+      <HarmonizationPanel
+        harmonization={harmonization}
+        selectedDegrees={selectedDegrees}
+        onSelectDegree={handleSelectDegree}
+        onSave={handleSave}
+        emptyMessage="Click on the grid above to enter a melody and see chord suggestions."
+      />
 
       {progressionsError && (
         <p className="text-sm text-destructive">{progressionsError}</p>

@@ -3,15 +3,15 @@ import { Note } from "tonal";
 // Autocorrelation-based pitch detector (ACF2+): finds the lag that best
 // repeats the waveform, then refines it with parabolic interpolation around
 // the peak so the estimate isn't quantized to whole samples.
+// `rms` is passed in rather than recomputed - callers already need it for
+// their own silence/level checks, and it's an O(n) pass over the buffer.
 export function autoCorrelate(
   buffer: Float32Array,
   sampleRate: number,
+  rms: number,
 ): number {
   const size = buffer.length;
 
-  const rms = Math.sqrt(
-    buffer.reduce((sum, value) => sum + value * value, 0) / size,
-  );
   if (rms < 0.01) return -1;
 
   // Trim near-silent leading/trailing samples so the correlation window
