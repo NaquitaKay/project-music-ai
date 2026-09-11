@@ -1,17 +1,12 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
-import { env } from "~/env";
+import { generateText } from "ai";
 
-// Cheap/fast model: the explanation is a short, fully-grounded rewording of
-// facts we already computed, not open-ended reasoning, so it doesn't need a
-// larger model - keeps a per-click feature affordable at volume.
-const MODEL = "claude-haiku-4-5-20251001";
-
-let client: Anthropic | null = null;
-function getClient(): Anthropic {
-  client ??= new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-  return client;
-}
+// Cheap/fast, non-reasoning model: the explanation is a short, fully-grounded
+// rewording of facts we already computed, not open-ended reasoning, so it
+// doesn't need a larger (or reasoning) model - keeps a per-click feature
+// affordable at volume and avoids burning the output budget on hidden
+// reasoning tokens.
+const MODEL = "google/gemini-2.5-flash-lite";
 
 export type ExplainChordInput = {
   tonic: string;
@@ -40,12 +35,11 @@ Keep the tone encouraging and easy for a beginner/intermediate musician to follo
 }
 
 export async function explainChord(input: ExplainChordInput): Promise<string> {
-  const message = await getClient().messages.create({
+  const { text } = await generateText({
     model: MODEL,
-    max_tokens: 300,
-    messages: [{ role: "user", content: buildPrompt(input) }],
+    maxOutputTokens: 300,
+    prompt: buildPrompt(input),
   });
 
-  const textBlock = message.content.find((block) => block.type === "text");
-  return textBlock?.type === "text" ? textBlock.text.trim() : "";
+  return text.trim();
 }
